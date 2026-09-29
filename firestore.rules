@@ -1,0 +1,90 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Default deny all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isBootstrappedAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'faheemaftab814@gmail.com' ||
+        request.auth.token.email == 'hanzalafaheem85@gmail.com'
+      );
+    }
+
+    function isAdmin() {
+      return isBootstrappedAdmin() || (
+        isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // Store Settings
+    match /storeSettings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Products catalog
+    match /products/{productId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Customer Profiles
+    match /users/{userId} {
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow list: if isAdmin();
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Admin Whitelist collection
+    match /admins/{adminId} {
+      allow read: if isSignedIn() && (request.auth.uid == adminId || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    // Orders Collection
+    match /orders/{orderId} {
+      // Customers can read their own orders; Admins can read all orders
+      allow get: if isAdmin() || (
+        isSignedIn() && resource.data.customerId == request.auth.uid
+      ) || (
+        resource.data.customerId == 'guest'
+      );
+
+      // List query security: rule enforces user matching
+      allow list: if isAdmin() || (
+        isSignedIn() && resource.data.customerId == request.auth.uid
+      );
+
+      // Anyone (guest or authenticated) can create an order with COD
+      allow create: if request.resource.data.finalTotal > 0 &&
+                       request.resource.data.paymentMethod == 'Cash on Delivery (COD)';
+
+      // Only admins can update order status / payment status
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // Customer Reviews
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if request.resource.data.rating >= 1 &&
+                       request.resource.data.rating <= 5 &&
+                       request.resource.data.productId is string;
+      allow update, delete: if isAdmin();
+    }
+  }
+}

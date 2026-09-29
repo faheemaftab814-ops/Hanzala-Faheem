@@ -1,0 +1,6 @@
+{
+  "name": "HYDROVA - Stainless Steel Tumblers",
+  "description": "Premium stainless steel tumblers designed for everyday hydration. Modern, minimalist, and built to perform.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

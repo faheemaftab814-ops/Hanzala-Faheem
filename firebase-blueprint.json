@@ -1,0 +1,140 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Registered customer profile and shipping details",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 128 },
+        "name": { "type": "string", "maxLength": 100 },
+        "phone": { "type": "string", "maxLength": 30 },
+        "city": { "type": "string", "maxLength": 60 },
+        "address": { "type": "string", "maxLength": 300 },
+        "role": { "type": "string", "enum": ["customer", "admin"], "maxLength": 20 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["userId", "email", "name"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Authorized administrator whitelist for the HYDROVA store",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "maxLength": 128 },
+        "email": { "type": "string", "maxLength": 128 },
+        "role": { "type": "string", "maxLength": 20 },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Product": {
+      "title": "Product",
+      "description": "Stainless steel tumbler product listing",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "maxLength": 150 },
+        "description": { "type": "string", "maxLength": 2000 },
+        "price": { "type": "number" },
+        "compareAtPrice": { "type": "number" },
+        "images": { "type": "array" },
+        "colors": { "type": "array" },
+        "stock": { "type": "number" },
+        "active": { "type": "boolean" },
+        "featured": { "type": "boolean" },
+        "category": { "type": "string", "maxLength": 50 },
+        "capacity": { "type": "string", "maxLength": 50 },
+        "material": { "type": "string", "maxLength": 100 },
+        "temperatureRetention": { "type": "string", "maxLength": 100 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["name", "price", "stock", "active"]
+    },
+    "Order": {
+      "title": "Order",
+      "description": "Customer purchase order with Cash on Delivery",
+      "type": "object",
+      "properties": {
+        "orderNumber": { "type": "string", "maxLength": 32 },
+        "customerId": { "type": "string", "maxLength": 128 },
+        "customerName": { "type": "string", "maxLength": 100 },
+        "phoneNumber": { "type": "string", "maxLength": 30 },
+        "email": { "type": "string", "maxLength": 128 },
+        "city": { "type": "string", "maxLength": 60 },
+        "shippingAddress": { "type": "string", "maxLength": 300 },
+        "orderNotes": { "type": "string", "maxLength": 500 },
+        "items": { "type": "array" },
+        "subtotal": { "type": "number" },
+        "shippingCharges": { "type": "number" },
+        "finalTotal": { "type": "number" },
+        "paymentMethod": { "type": "string", "maxLength": 50 },
+        "paymentStatus": { "type": "string", "enum": ["Unpaid", "Paid"], "maxLength": 20 },
+        "orderStatus": { "type": "string", "enum": ["Pending", "Confirmed", "Processing", "Shipped", "Delivered", "Cancelled"], "maxLength": 20 },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["orderNumber", "customerName", "phoneNumber", "city", "shippingAddress", "items", "finalTotal", "orderStatus", "paymentMethod"]
+    },
+    "Review": {
+      "title": "Review",
+      "description": "Customer tumbler verified review",
+      "type": "object",
+      "properties": {
+        "productId": { "type": "string", "maxLength": 128 },
+        "customerName": { "type": "string", "maxLength": 100 },
+        "customerId": { "type": "string", "maxLength": 128 },
+        "rating": { "type": "number" },
+        "comment": { "type": "string", "maxLength": 1000 },
+        "verifiedPurchase": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["productId", "customerName", "rating", "comment"]
+    },
+    "StoreSettings": {
+      "title": "StoreSettings",
+      "description": "Store configuration and operational variables",
+      "type": "object",
+      "properties": {
+        "storeName": { "type": "string", "maxLength": 100 },
+        "contactEmail": { "type": "string", "maxLength": 128 },
+        "whatsappNumber": { "type": "string", "maxLength": 30 },
+        "currency": { "type": "string", "maxLength": 10 },
+        "shippingCharges": { "type": "number" },
+        "freeShippingThreshold": { "type": "number" },
+        "announcementText": { "type": "string", "maxLength": 200 },
+        "returnPolicy": { "type": "string", "maxLength": 3000 },
+        "shippingPolicy": { "type": "string", "maxLength": 3000 },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["storeName", "contactEmail", "whatsappNumber"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "Customer profile documents, accessible by the user and admins"
+    },
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/Admin" },
+      "description": "Whitelisted administrator credentials"
+    },
+    "/products/{productId}": {
+      "schema": { "$ref": "#/entities/Product" },
+      "description": "Tumblers catalog, publicly readable, admin editable"
+    },
+    "/orders/{orderId}": {
+      "schema": { "$ref": "#/entities/Order" },
+      "description": "Orders collection, readable by the customer or admin, created by checkout"
+    },
+    "/reviews/{reviewId}": {
+      "schema": { "$ref": "#/entities/Review" },
+      "description": "Product reviews, publicly readable, submitted by authenticated or verified customers"
+    },
+    "/storeSettings/{settingId}": {
+      "schema": { "$ref": "#/entities/StoreSettings" },
+      "description": "Public store settings like shipping rates and contact details"
+    }
+  }
+}
